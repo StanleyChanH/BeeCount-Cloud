@@ -14,6 +14,7 @@ import { usePrimaryColor } from '@beecount/ui'
 import type { AppSection } from '@beecount/web-features'
 
 import { AboutDialog } from '../components/AboutDialog'
+import { AgentAssistant } from '../components/agent/AgentAssistant'
 import { PwaInstallBanner } from '../components/PwaInstallBanner'
 import { PwaUpdateBanner } from '../components/PwaUpdateBanner'
 import { GlobalAskDialog } from '../components/cmdk-ai/GlobalAskDialog'
@@ -237,6 +238,7 @@ export function AppShell({ token, onLogout }: Props) {
           <GlobalEntityDialogs />
           <GlobalEditDialogs />
           <GlobalAskDialog />
+          <AgentAssistant />
           <GlobalParseTxDialog />
           <GlobalSharedLedgerDialogs />
         </SharedLedgerResourcesProvider>

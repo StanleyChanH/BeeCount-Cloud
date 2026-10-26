@@ -238,3 +238,96 @@ export async function batchCreateTransactions(
     }
   )
 }
+
+// ---------------------------------------------------------------------------
+// Agent 财务助手(悬浮窗)— POST /ai/agent/chat
+// ---------------------------------------------------------------------------
+
+export type AgentChatMessage = {
+  role: 'user' | 'assistant'
+  content: string
+}
+
+/** status 事件:Agent 正在执行(或执行完)某个工具;name 映射 i18n 标签。 */
+export type AgentChatEvent =
+  | { type: 'status'; tool: string; phase: 'start' | 'done' }
+  | { type: 'chunk'; text: string }
+  | { type: 'tool_calls'; items: { name: string }[] }
+  | { type: 'done'; rounds: number }
+  | { type: 'error'; error_code: string; message: string }
+
+export type AgentChatRequest = {
+  messages: AgentChatMessage[]
+  /** 'zh' | 'zh-CN' | 'zh-TW' | 'en' */
+  locale: string
+  tzOffsetMinutes?: number
+}
+
+/**
+ * SSE stream from POST /api/v1/ai/agent/chat(悬浮 AI 财务助手)。
+ *
+ * 服务端是 JSON 模式 ReAct 工具循环:事件序通常是
+ *   status(start/done) × N → chunk(最终答案一次性发,前端可做打字机)
+ *   → tool_calls(轨迹) → done;失败为 error 事件(AI_PROVIDER_ERROR /
+ *   AI_AGENT_INVALID_OUTPUT)。预检失败抛 ApiError:
+ *   400 AI_NO_CHAT_PROVIDER / 422 AI_AGENT_INVALID_MESSAGES / 429 AI_AGENT_RATE_LIMITED。
+ *
+ * SSE 解析与 streamAsk 同款(fetch POST + ReadableStream,非 EventSource)。
+ */
+export async function* streamAgentChat(
+  token: string,
+  options: AgentChatRequest,
+): AsyncGenerator<AgentChatEvent> {
+  const response = await fetch(`${API_BASE}/ai/agent/chat`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      Accept: 'text/event-stream',
+    },
+    body: JSON.stringify({
+      messages: options.messages,
+      locale: options.locale,
+      tz_offset_minutes: options.tzOffsetMinutes ?? -new Date().getTimezoneOffset(),
+    }),
+  })
+
+  if (!response.ok) {
+    throw await extractApiError(response)
+  }
+  if (!response.body) {
+    throw new ApiError('response body missing', { status: response.status, code: 'AI_NO_BODY' })
+  }
+
+  const reader = response.body.getReader()
+  const decoder = new TextDecoder('utf-8')
+  let buffer = ''
+
+  try {
+    while (true) {
+      const { value, done } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+      let sepIdx: number
+      while ((sepIdx = buffer.indexOf('\n\n')) !== -1) {
+        const raw = buffer.slice(0, sepIdx)
+        buffer = buffer.slice(sepIdx + 2)
+        const dataLine = raw.split('\n').find((l) => l.startsWith('data:'))
+        if (!dataLine) continue
+        const payload = dataLine.slice('data:'.length).trim()
+        if (!payload) continue
+        try {
+          const parsed = JSON.parse(payload) as AgentChatEvent
+          yield parsed
+          if (parsed.type === 'done' || parsed.type === 'error') {
+            return
+          }
+        } catch {
+          // 单条事件 JSON 解析失败不炸整条流(跟 streamAsk 同策略)
+        }
+      }
+    }
+  } finally {
+    void reader.cancel().catch(() => {})
+  }
+}

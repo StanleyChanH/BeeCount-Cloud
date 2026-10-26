@@ -73,6 +73,7 @@
 - Full bookkeeping UI (transactions / accounts / categories / tags / budgets)
 - Interactive dashboard (mobile-like, responsive)
 - **Financial insights page** — period-over-period comparison (income / expense / balance / savings rate), 12-month top-category stacked trends, and a month-end spend forecast based on your trailing 3-month daily pace; also exposed to LLM clients via the `get_financial_insights` MCP tool
+- **Floating AI financial assistant** — a chat bubble on the console that runs on your own OpenAI-compatible LLM and actually reads your ledger through read-only tools (analytics / insights / budgets / net worth / transactions) to answer queries, compare periods and give grounded advice, with live tool-trace pills and voice input
 - **⌘K command palette + AI doc Q&A** — ⌘K (macOS) / Ctrl+K from anywhere; type `?xxx` or pick "Ask AI" to RAG-retrieve from official docs and stream an answer using your App-configured LLM, with source links auto-attached
 - **PWA support** — Click the install icon in your browser's address bar to install as a desktop app; works offline with cached data
 - Three languages — English / Simplified Chinese / Traditional Chinese
