@@ -3,6 +3,8 @@ import { extractApiError } from './errors'
 import type {
   AnalyticsMetric,
   AnalyticsScope,
+  InsightsMetric,
+  InsightsScope,
   NetWorthHistory,
   ReadAccount,
   ReadBudget,
@@ -15,6 +17,7 @@ import type {
   WorkspaceAccount,
   WorkspaceAnalytics,
   WorkspaceCategory,
+  WorkspaceInsights,
   WorkspaceLedgerCounts,
   WorkspaceTag,
   WorkspaceTransaction,
@@ -304,6 +307,34 @@ export async function fetchNetWorthHistory(
   if (typeof options?.tzOffsetMinutes === 'number') query.set('tz_offset_minutes', `${options.tzOffsetMinutes}`)
   const suffix = query.toString() ? `?${query.toString()}` : ''
   return authedGet<NetWorthHistory>(`/read/workspace/net-worth-history${suffix}`, token)
+}
+
+/**
+ * 财务洞察 — 环比对比 + 12 个月分类趋势 + 本月收支预测。
+ * server endpoint: GET /read/workspace/insights
+ */
+export async function fetchWorkspaceInsights(
+  token: string,
+  options?: {
+    scope?: InsightsScope
+    metric?: InsightsMetric
+    period?: string
+    ledgerId?: string
+    userId?: string
+    tzOffsetMinutes?: number
+    naturalMonth?: boolean
+  }
+): Promise<WorkspaceInsights> {
+  const query = new URLSearchParams()
+  if (options?.scope) query.set('scope', options.scope)
+  if (options?.metric) query.set('metric', options.metric)
+  if (options?.period) query.set('period', options.period)
+  if (options?.ledgerId) query.set('ledger_id', options.ledgerId)
+  if (options?.userId) query.set('user_id', options.userId)
+  if (typeof options?.tzOffsetMinutes === 'number') query.set('tz_offset_minutes', `${options.tzOffsetMinutes}`)
+  if (options?.naturalMonth) query.set('natural_month', 'true')
+  const suffix = query.toString() ? `?${query.toString()}` : ''
+  return authedGet<WorkspaceInsights>(`/read/workspace/insights${suffix}`, token)
 }
 
 // ============================================================================

@@ -17,6 +17,7 @@ import {
   LayoutDashboard,
   LogOut,
   Moon,
+  PieChart,
   Plus,
   Receipt,
   Search,
@@ -634,6 +635,7 @@ export function CommandPalette({ open, onClose, onOpenAnnualReport }: CommandPal
           {/* === 5. 页面导航 === */}
           <Group heading={t('cmdk.group.navigation')}>
             <Item icon={<LayoutDashboard className="h-4 w-4" />} label={t('nav.overview')} onSelect={() => goto('overview')} />
+            <Item icon={<PieChart className="h-4 w-4" />} label={t('nav.analytics')} onSelect={() => goto('analytics')} />
             <Item icon={<Receipt className="h-4 w-4" />} label={t('nav.transactions')} onSelect={() => goto('transactions')} />
             <Item icon={<Receipt className="h-4 w-4" />} label={t('attachments.title')} onSelect={() => goto('attachments')} />
             <Item icon={<CalendarDays className="h-4 w-4" />} label={t('nav.calendar')} onSelect={() => goto('calendar')} />

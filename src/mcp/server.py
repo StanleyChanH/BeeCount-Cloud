@@ -336,6 +336,33 @@ async def get_analytics_summary(
 
 
 @mcp.tool()
+async def get_financial_insights(
+    ctx: Context,
+    scope: str = "month",
+    metric: str = "expense",
+    period: str | None = None,
+    ledger_id: str | None = None,
+    tz_offset_minutes: int = 0,
+) -> dict[str, Any]:
+    """Period-over-period comparison (income/expense/balance/savings rate vs previous
+    month or year), top-category 12-month trends, and a month-end expense forecast.
+
+    Args:
+        scope: 'month' | 'year' — comparison granularity.
+        metric: 'expense' | 'income' — category trend metric.
+        period: For month: 'YYYY-MM'. For year: 'YYYY'. Defaults to current.
+        ledger_id: Optional, uses active ledger if omitted.
+        tz_offset_minutes: Client timezone offset (JavaScript sign), e.g. 480 for CST.
+    """
+    kw = {"scope": scope, "metric": metric, "period": period,
+          "ledger_id": ledger_id, "tz_offset_minutes": tz_offset_minutes}
+    return await _logged_call(
+        ctx, name="get_financial_insights", scope=SCOPE_MCP_READ, kwargs=kw,
+        body=lambda user: asyncio.to_thread(read_tools.get_financial_insights, user, **kw),
+    )
+
+
+@mcp.tool()
 async def search(ctx: Context, q: str, limit: int = 20) -> list[dict[str, Any]]:
     """Full-text fuzzy search across transaction notes, category names, account names."""
     return await _logged_call(
@@ -530,7 +557,7 @@ def import_statement(ledger_id: str) -> str:
 
 _READ_NAMES = {"list_ledgers", "get_active_ledger", "list_transactions", "get_transaction",
                "list_categories", "list_accounts", "list_tags", "list_budgets", "get_ledger_stats",
-               "get_analytics_summary", "search"}
+               "get_analytics_summary", "get_financial_insights", "search"}
 for _name in _READ_NAMES:
     mcp._tool_manager._tools[_name].annotations = ToolAnnotations(
         readOnlyHint=True, destructiveHint=False, idempotentHint=True, openWorldHint=False)

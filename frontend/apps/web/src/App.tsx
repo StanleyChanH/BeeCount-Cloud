@@ -45,6 +45,9 @@ const LedgersPage = lazy(() =>
 const OverviewPage = lazy(() =>
   import('./pages/sections/OverviewPage').then((m) => ({ default: m.OverviewPage })),
 )
+const AnalyticsPage = lazy(() =>
+  import('./pages/sections/AnalyticsPage').then((m) => ({ default: m.AnalyticsPage })),
+)
 const SettingsAiPage = lazy(() =>
   import('./pages/sections/SettingsAiPage').then((m) => ({ default: m.SettingsAiPage })),
 )
@@ -194,6 +197,14 @@ function AppRoutes() {
           element={
             <Suspense fallback={<RouteFallback />}>
               <OverviewPage />
+            </Suspense>
+          }
+        />
+        <Route
+          path="analytics"
+          element={
+            <Suspense fallback={<RouteFallback />}>
+              <AnalyticsPage />
             </Suspense>
           }
         />

@@ -1,5 +1,6 @@
 export type AppSection =
   | 'overview'
+  | 'analytics'
   | 'transactions'
   | 'calendar'
   | 'attachments'
@@ -36,6 +37,7 @@ export const NAV_GROUPS: NavGroup[] = [
     titleKey: 'nav.group.bookkeeping',
     items: [
       { key: 'overview', labelKey: 'nav.overview' },
+      { key: 'analytics', labelKey: 'nav.analytics' },
       { key: 'transactions', labelKey: 'nav.transactions' },
       // calendar 不放主导航(高频但不是"主视图"等级,跟 transactions 重复语义);
       // 入口走 AppHeader 右上角图标 + ⌘K + AvatarDropdown 任一即可。

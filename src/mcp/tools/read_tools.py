@@ -431,6 +431,33 @@ def get_analytics_summary(
                                      refund_policy="income and expense stay separate; no inferred refund pairing"))
 
 
+def get_financial_insights(
+    user: User, *, scope: str = "month", metric: str = "expense",
+    period: str | None = None, ledger_id: str | None = None,
+    tz_offset_minutes: int = 0,
+) -> dict[str, Any]:
+    """Period-over-period comparison, 12-month category trends and a month-end
+    forecast, computed by the production insights endpoint."""
+    from ...routers.read.insights import workspace_insights
+    if scope not in {"month", "year"}:
+        raise ValueError("scope must be month or year")
+    if metric not in {"expense", "income"}:
+        raise ValueError("metric must be expense or income")
+    if not -720 <= tz_offset_minutes <= 840:
+        raise ValueError("Invalid timezone offset")
+    with SessionLocal() as db:
+        led = _resolve_ledger(db, user.id, ledger_id)
+        if not led:
+            return {}
+        result = workspace_insights(scope=scope, metric=metric, period=period,
+                                    ledger_id=led.external_id, user_id=led.user_id,
+                                    tz_offset_minutes=tz_offset_minutes,
+                                    natural_month=False, _scopes=set(),
+                                    current_user=user, db=db)
+        return dict(ledger=led.name, ledger_id=led.external_id, currency=led.currency,
+                    **result.model_dump(mode="json"))
+
+
 def search(user: User, *, q: str, limit: int = 20) -> list[dict[str, Any]]:
     """全文模糊搜交易备注、分类、账户及标签（包括标签 ID 关联）。"""
     if not q.strip():

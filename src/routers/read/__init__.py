@@ -7,12 +7,13 @@ main.py 的 `from .routers import read` + `app.include_router(read.router, ...)`
 按资源组拆分:
   - ledgers    账本维度读
   - workspace  跨账本聚合读
+  - insights   财务洞察(环比对比 / 分类趋势 / 月度预测)
   - summary    单独小端点
 
 改某条具体端点 → 对应子模块;改共享查询 helper / 字段映射 → _shared.py。
 """
 # 导入子模块触发 @router 装饰器注册。
-from . import attachment_gallery, ledgers, rates, summary, workspace  # noqa: E402,F401
+from . import attachment_gallery, insights, ledgers, rates, summary, workspace  # noqa: E402,F401
 from ._shared import router  # noqa: F401
 
 __all__ = ['router']

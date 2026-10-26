@@ -409,6 +409,85 @@ export type WorkspaceAnalytics = {
   range: WorkspaceAnalyticsRange
 }
 
+// ---------------------------------------------------------------------------
+// 财务洞察(GET /read/workspace/insights)
+// ---------------------------------------------------------------------------
+
+export type InsightsScope = 'month' | 'year'
+export type InsightsMetric = 'expense' | 'income'
+
+export type InsightsPeriodSummary = {
+  /** "YYYY-MM"(月 scope)或 "YYYY"(年 scope);无账本时为空串 */
+  period: string
+  income_total: number
+  expense_total: number
+  balance: number
+  transaction_count: number
+  /** (income-expense)/income × 100,单位 %;income<=0 时为 null(显示 "-") */
+  savings_rate: number | null
+}
+
+export type InsightsDeltas = {
+  /** (cur-prev)/prev × 100;prev 为 0 时 null(显示「无上期数据」) */
+  income_pct: number | null
+  expense_pct: number | null
+  /** 结余绝对变化(本期 - 上期) */
+  balance_abs: number
+  /** 储蓄率变化,单位百分点;任一期为 null 时 null */
+  savings_rate_pct: number | null
+}
+
+export type InsightsComparison = {
+  scope: InsightsScope
+  current: InsightsPeriodSummary
+  previous: InsightsPeriodSummary
+  deltas: InsightsDeltas
+}
+
+export type InsightsCategoryTrend = {
+  /** "其他"聚合行时为空串,前端用 i18n 键渲染 */
+  category_name: string
+  is_other: boolean
+  total: number
+  /** 与 months 对齐的月度金额(缺月为 0) */
+  series: number[]
+}
+
+export type InsightsCategoryTrends = {
+  metric: InsightsMetric
+  /** 最近 12 个周期月,以当前周期月收尾 */
+  months: string[]
+  categories: InsightsCategoryTrend[]
+}
+
+export type InsightsForecast = {
+  /** 永远是**当前**周期月("YYYY-MM"),与选中的对比期无关 */
+  period: string
+  days_elapsed: number
+  days_total: number
+  days_remaining: number
+  expense_so_far: number
+  income_so_far: number
+  /** 本月日均支出(已发生部分);无支出时 null */
+  daily_expense_current: number | null
+  /** 近 3 个完整已发生月的日均支出(预测基线);无历史时 null */
+  daily_expense_trailing: number | null
+  projected_expense: number | null
+  projected_income: number | null
+  projected_balance: number | null
+  projected_savings_rate: number | null
+  /** pace = 已发生 + trailing 日均 × 剩余天数;run_rate = 本月线性外推;no_data = 本月无数据 */
+  basis: 'pace' | 'run_rate' | 'no_data'
+  /** 最近 6 个完整月 + 当前月(末位 bucket == period) */
+  history_months: WorkspaceAnalyticsSeriesItem[]
+}
+
+export type WorkspaceInsights = {
+  comparison: InsightsComparison
+  category_trends: InsightsCategoryTrends
+  forecast: InsightsForecast
+}
+
 export type UserAdmin = {
   id: string
   email: string
